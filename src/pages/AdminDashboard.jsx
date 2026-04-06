@@ -260,8 +260,7 @@ const AdminDashboard = () => {
           top: 0
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "0 10px" }}>
-            <img src="/assets/kmglogo.png" alt="KMG Logo" style={{ height: "24px", width: "auto" }} />
-            <span style={{ fontWeight: "700", fontSize: "16px", letterSpacing: "-0.01em" }}>KMG Admin</span>
+            <img src="/assets/kmglogo.png" alt="KMG Logo" style={{ height: "32px", width: "auto" }} />
           </div>
 
           <div style={{ padding: "0 10px" }}>
