@@ -260,7 +260,7 @@ const AdminDashboard = () => {
           top: 0
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "0 10px" }}>
-            <img src="/assets/kmglogo.png" alt="KMG Logo" style={{ height: "32px", width: "auto" }} />
+            <img src="/assets/kmglogo.png" alt="KMG Logo" style={{ height: "auto", width: "160px", maxWidth: "100%" }} />
           </div>
 
           <div style={{ padding: "0 10px" }}>
@@ -1503,6 +1503,7 @@ const SubmissionsTab = ({ leads, setLeads, onUpdate, isMobile, onOpenStatusPicke
           onClose={() => setSelectedLead(null)}
           onStatusUpdate={handleStatusUpdate}
           isMobile={isMobile}
+          configSteps={config?.steps}
         />
       )}
 
