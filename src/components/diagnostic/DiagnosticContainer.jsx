@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import DOMPurify from "dompurify";
 import { supabase } from "../../lib/supabase";
 import { updateLeadBooking } from "../../lib/db";
 
@@ -18,13 +19,25 @@ const R_DEFAULTS = {
   growth: "Establish performance tracking. Map your full funnel to find and fix drop-offs." 
 };
 
+const escapeHtml = (str) => {
+  if (!str) return "";
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+};
+
 const formatMsg = (msg, uname) => {
   if (!msg) return "";
-  return msg
+  const safeUname = escapeHtml(uname);
+  const raw = msg
     .replace(/<strong class=['"]uname['"]><\/strong>/g, `{NAME}`) // Handle old format if any
-    .replace(/{NAME}/g, `<strong class="uname">${uname}</strong>`)
+    .replace(/{NAME}/g, `<strong class="uname">${safeUname}</strong>`)
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/<strong>(.*?)<\/strong>/g, '<strong>$1</strong>'); // Keep existing HTML support
+  return DOMPurify.sanitize(raw, { ALLOWED_TAGS: ["strong", "em", "br"], ALLOWED_ATTR: ["class"] });
 };
 
 // ─── COMPONENTS ───
@@ -172,6 +185,7 @@ export default function DiagnosticContainer({ initialP, initialSteps }) {
   };
 
   const skipToResults = async () => {
+    if (import.meta.env.PROD) return;
     const dummyData = { 
       fname: "Test", lname: "User", email: "test@example.com", 
       company: "KMG Test Corp", rev: "£500K–1M/mo", ind: "Technology / SaaS" 

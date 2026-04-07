@@ -24,7 +24,7 @@ export default function AdminLogin() {
       if (error) throw error;
       
       // Restriction to only allow the specific admin email
-      if (email !== "kmgadmingtm21@gmail.com") {
+      if (email !== import.meta.env.VITE_ADMIN_EMAIL) {
         await supabase.auth.signOut();
         throw new Error("You are not authorized as an admin.");
       }

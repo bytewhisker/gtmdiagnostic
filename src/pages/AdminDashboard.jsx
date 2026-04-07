@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import DOMPurify from "dompurify";
 import {
   BarChart3, Users, Settings, LogOut, Search, Download,
   Calendar, ChevronDown, Save, Plus, X,
@@ -43,7 +44,7 @@ const AdminDashboard = () => {
         audio.pause();
         audio.currentTime = 0;
         audioUnlocked.current = true;
-      }).catch(() => {});
+      }).catch(() => { });
       document.removeEventListener("click", unlock);
     };
     document.addEventListener("click", unlock);
@@ -98,7 +99,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session || session.user.email !== "kmgadmingtm21@gmail.com") {
+      if (!session || session.user.email !== import.meta.env.VITE_ADMIN_EMAIL) {
         await supabase.auth.signOut();
         navigate("/gtmlogin");
       }
@@ -112,15 +113,14 @@ const AdminDashboard = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'gtm_leads' }, (payload) => {
         // Silent background fetch to ensure ALL stats and lists are perfectly in sync
         loadData(true);
-        
+
         const isBooking = payload.new?.is_booked === true;
-        
+
         // If it's a booking, and it wasn't already booked (or we don't know yet)
         const isNewBooking = payload.eventType === 'INSERT' && isBooking;
         const wasJustBooked = payload.eventType === 'UPDATE' && isBooking && payload.old?.is_booked !== true;
 
         if ((isNewBooking || wasJustBooked) && !muteNotifications) {
-          console.log("🔥 NEW BOOKING DETECTED:", payload.new);
           setActiveToast(payload.new);
           playPing();
           showPushNotification(payload.new);
@@ -153,12 +153,12 @@ const AdminDashboard = () => {
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: isMobile ? "column" : "row", background: "var(--bg)", color: "#fff", position: "relative" }}>
-      
+
       {/* ── REAL-TIME TOAST ALERT ── */}
       {activeToast && (
         <div style={{
           position: "fixed", top: "24px", left: "50%", transform: "translateX(-50%)",
-          zIndex: 9999, background: "#065F46", border: "1px solid #10B981", 
+          zIndex: 9999, background: "#065F46", border: "1px solid #10B981",
           borderRadius: "16px", padding: "16px 24px", color: "#fff",
           display: "flex", alignItems: "center", gap: "16px",
           boxShadow: "0 20px 40px rgba(0,0,0,0.5)",
@@ -169,7 +169,7 @@ const AdminDashboard = () => {
             <div style={{ fontSize: "12px", fontWeight: "800", textTransform: "uppercase", opacity: 0.8, letterSpacing: "0.05em" }}>New Booking Received!</div>
             <div style={{ fontSize: "16px", fontWeight: "700" }}>{activeToast.fname} {activeToast.lname} from {activeToast.company}</div>
           </div>
-          <button 
+          <button
             onClick={() => setActiveToast(null)}
             style={{ marginLeft: "12px", background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", padding: "4px 8px", borderRadius: "8px", cursor: "pointer", fontSize: "11px" }}
           >
@@ -192,8 +192,8 @@ const AdminDashboard = () => {
 
       {/* Mobile Header - Premium Refined Version */}
       {isMobile && (
-        <div style={{ 
-          padding: "16px 24px", borderBottom: "1px solid var(--brd)", 
+        <div style={{
+          padding: "16px 24px", borderBottom: "1px solid var(--brd)",
           display: "flex", alignItems: "center", justifyContent: "space-between",
           background: "rgba(9,9,11,0.95)", backdropFilter: "blur(20px)",
           position: "sticky", top: 0, zIndex: 100, transition: "all 0.3s"
@@ -209,7 +209,7 @@ const AdminDashboard = () => {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             {!notificationsEnabled ? (
-              <button 
+              <button
                 onClick={requestNotificationPermission}
                 style={{
                   background: "rgba(96,165,250,0.1)", border: "1px solid rgba(96,165,250,0.2)",
@@ -227,7 +227,7 @@ const AdminDashboard = () => {
                   setTimeout(() => setToast(null), 2000);
                 }}
                 style={{
-                  background: muteNotifications ? "rgba(255,255,255,0.03)" : "rgba(74,222,128,0.08)", 
+                  background: muteNotifications ? "rgba(255,255,255,0.03)" : "rgba(74,222,128,0.08)",
                   border: `1px solid ${muteNotifications ? "rgba(255,255,255,0.08)" : "rgba(74,222,128,0.2)"}`,
                   color: muteNotifications ? "#63636B" : "#4ADE80",
                   cursor: "pointer", display: "flex", alignItems: "center", padding: "10px", borderRadius: "12px",
@@ -248,11 +248,11 @@ const AdminDashboard = () => {
 
       {/* Sidebar (Desktop only now) */}
       {!isMobile && (
-        <div style={{ 
-          width: "280px", 
-          borderRight: "1px solid var(--brd)", 
-          padding: "32px 24px", 
-          display: "flex", 
+        <div style={{
+          width: "280px",
+          borderRight: "1px solid var(--brd)",
+          padding: "32px 24px",
+          display: "flex",
           flexDirection: "column",
           gap: "40px",
           height: "100vh",
@@ -265,10 +265,10 @@ const AdminDashboard = () => {
 
           <div style={{ padding: "0 10px" }}>
             {!notificationsEnabled ? (
-              <button 
+              <button
                 onClick={requestNotificationPermission}
                 style={{
-                  width: "100%", padding: "12px", borderRadius: "12px", 
+                  width: "100%", padding: "12px", borderRadius: "12px",
                   background: "rgba(96,165,250,0.05)", border: "1px solid rgba(96,165,250,0.15)",
                   color: "#93C5FD", fontSize: "13px", fontWeight: "600", cursor: "pointer",
                   display: "flex", alignItems: "center", gap: "10px", transition: "all 0.2s"
@@ -279,10 +279,10 @@ const AdminDashboard = () => {
                 <Bell size={18} /> Enable Notifications
               </button>
             ) : (
-              <div 
+              <div
                 onClick={() => setMuteNotifications(!muteNotifications)}
-                style={{ 
-                  display: "flex", alignItems: "center", justifyContent: "space-between", 
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
                   padding: "12px 16px", borderRadius: "12px", background: "rgba(255,255,255,0.03)",
                   border: "1px solid var(--brd)", cursor: "pointer", transition: "border 0.2s"
                 }}
@@ -295,14 +295,14 @@ const AdminDashboard = () => {
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                   <div style={{
-                    width: "32px", height: "18px", borderRadius: "20px", 
+                    width: "32px", height: "18px", borderRadius: "20px",
                     background: muteNotifications ? "#27272A" : "rgba(74,222,128,0.2)",
                     position: "relative", transition: "background 0.3s"
                   }}>
-                    <div style={{ 
-                      position: "absolute", top: "3px", 
+                    <div style={{
+                      position: "absolute", top: "3px",
                       left: muteNotifications ? "4px" : "17px",
-                      width: "12px", height: "12px", borderRadius: "50%", 
+                      width: "12px", height: "12px", borderRadius: "50%",
                       background: muteNotifications ? "#52525B" : "#4ADE80",
                       transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
                     }} />
@@ -319,11 +319,11 @@ const AdminDashboard = () => {
           </nav>
 
           <div style={{ marginTop: "auto", padding: "0 10px" }}>
-            <button 
+            <button
               onClick={handleLogout}
-              style={{ 
-                display: "flex", alignItems: "center", gap: "10px", 
-                background: "none", border: "none", color: "var(--td)", 
+              style={{
+                display: "flex", alignItems: "center", gap: "10px",
+                background: "none", border: "none", color: "var(--td)",
                 fontSize: "14px", fontWeight: "500", cursor: "pointer",
                 transition: "color 0.2s"
               }}
@@ -335,10 +335,10 @@ const AdminDashboard = () => {
       )}
 
       {/* Main Content */}
-      <main style={{ 
-        flex: 1, 
-        padding: isMobile ? "24px 20px 100px 20px" : "40px 60px", 
-        overflowY: "auto" 
+      <main style={{
+        flex: 1,
+        padding: isMobile ? "24px 20px 100px 20px" : "40px 60px",
+        overflowY: "auto"
       }}>
         {loading ? (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "70vh" }}>
@@ -356,13 +356,13 @@ const AdminDashboard = () => {
       {/* Global Status Update Modal (Mobile Bottom Sheet) */}
       {isMobile && activeStatusLead && (
         <>
-          <div 
+          <div
             onClick={() => setActiveStatusLead(null)}
-            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)", zIndex: 10000, animation: "fadeIn 0.2s ease-out" }} 
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)", zIndex: 10000, animation: "fadeIn 0.2s ease-out" }}
           />
           <div style={{
-            position: "fixed", bottom: 0, left: 0, right: 0, 
-            background: "#111113", borderTop: "1px solid #27272A", 
+            position: "fixed", bottom: 0, left: 0, right: 0,
+            background: "#111113", borderTop: "1px solid #27272A",
             borderTopLeftRadius: "30px", borderTopRightRadius: "30px",
             padding: "24px 24px 48px 24px", zIndex: 10001,
             animation: "slideInUp 0.3s cubic-bezier(.22,1,.36,1)",
@@ -373,19 +373,19 @@ const AdminDashboard = () => {
               <div style={{ fontSize: "11px", fontWeight: "800", color: "#63636B", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "4px" }}>Lead Status</div>
               <div style={{ fontSize: "18px", fontWeight: "700", color: "#fff" }}>{activeStatusLead.fname} {activeStatusLead.lname}</div>
             </div>
-            
+
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               {STATUS_OPTS.map(s => {
                 const m = STATUS_META[s];
                 const active = activeStatusLead.status === s || (!activeStatusLead.status && s === "new");
                 return (
-                  <button 
-                    key={s} 
+                  <button
+                    key={s}
                     onClick={async () => {
                       const id = activeStatusLead.id;
                       setLeads(prev => prev.map(l => l.id === id ? { ...l, status: s } : l));
                       setActiveStatusLead(null);
-                      try { await updateLeadStatus(id, s); } catch(e) { console.error(e); }
+                      try { await updateLeadStatus(id, s); } catch (e) { console.error(e); }
                     }}
                     style={{
                       display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -401,7 +401,7 @@ const AdminDashboard = () => {
                 );
               })}
             </div>
-            <button 
+            <button
               onClick={() => setActiveStatusLead(null)}
               style={{ width: "100%", marginTop: "20px", padding: "16px", borderRadius: "16px", background: "rgba(255,255,255,0.03)", border: "none", color: "#63636B", fontWeight: "700", fontSize: "14px", cursor: "pointer" }}
             >
@@ -432,7 +432,7 @@ const AdminDashboard = () => {
 
 // ─── BOTTOM TAB COMPONENT ───
 const BottomTab = ({ active, onClick, icon, label, color }) => (
-  <button 
+  <button
     onClick={onClick}
     style={{
       display: "flex", flexDirection: "column", alignItems: "center", gap: "4px",
@@ -441,14 +441,14 @@ const BottomTab = ({ active, onClick, icon, label, color }) => (
       position: "relative"
     }}
   >
-    <div style={{ 
+    <div style={{
       color: active ? (color || "#fff") : "rgba(161, 161, 170, 0.5)",
       transition: "all 0.3s",
       transform: active ? "translateY(-2px) scale(1.1)" : "none"
     }}>
       {icon}
     </div>
-    <span style={{ 
+    <span style={{
       fontSize: "9px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.05em",
       color: active ? (color || "#fff") : "rgba(161, 161, 170, 0.5)",
       transition: "all 0.3s"
@@ -456,8 +456,8 @@ const BottomTab = ({ active, onClick, icon, label, color }) => (
       {label}
     </span>
     {active && (
-      <div style={{ 
-        position: "absolute", bottom: "-4px", width: "4px", height: "4px", 
+      <div style={{
+        position: "absolute", bottom: "-4px", width: "4px", height: "4px",
         borderRadius: "50%", background: color || "#fff", boxShadow: `0 0 10px ${color || "#fff"}`
       }} />
     )}
@@ -467,9 +467,9 @@ const BottomTab = ({ active, onClick, icon, label, color }) => (
 
 // Define any auxiliary components used across multiple sections here
 const Loader2 = ({ className, size }) => (
-  <svg 
-    className={className} 
-    width={size} height={size} 
+  <svg
+    className={className}
+    width={size} height={size}
     viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
     style={{ animation: "spin 1s linear infinite" }}
   >
@@ -479,10 +479,10 @@ const Loader2 = ({ className, size }) => (
 );
 
 const NavBtn = ({ active, onClick, icon, label }) => (
-  <button 
+  <button
     onClick={onClick}
-    style={{ 
-      display: "flex", alignItems: "center", gap: "12px", padding: "12px 16px", 
+    style={{
+      display: "flex", alignItems: "center", gap: "12px", padding: "12px 16px",
       borderRadius: "12px", border: "none", width: "100%", textAlign: "left",
       fontSize: "14px", fontWeight: "600", transition: "all 0.2s", cursor: "pointer",
       background: active ? "rgba(255, 255, 255, 0.05)" : "transparent",
@@ -512,20 +512,20 @@ const OverviewTab = ({ leads, isMobile }) => {
         <StatCard label="Avg. Diagnostic Score" value={`${avgScore}/100`} icon={<BarChart3 size={20} color="#fff" />} trend="Steady" />
       </div>
 
-      <div style={{ 
+      <div style={{
         background: "var(--bg2)", border: "1px solid var(--brd)", borderRadius: "24px", padding: "32px",
         marginTop: "16px"
       }}>
         <h3 style={{ fontSize: "18px", fontWeight: "700", marginBottom: "20px" }}>Recent Activity</h3>
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           {leads.slice(0, 5).map((l, i) => (
-            <div key={i} style={{ 
-              display: "flex", alignItems: "center", gap: "16px", padding: "16px", 
-              borderRadius: "16px", border: "1px solid var(--brd)", background: "rgba(255, 255, 255, 0.02)" 
+            <div key={i} style={{
+              display: "flex", alignItems: "center", gap: "16px", padding: "16px",
+              borderRadius: "16px", border: "1px solid var(--brd)", background: "rgba(255, 255, 255, 0.02)"
             }}>
-              <div style={{ 
+              <div style={{
                 width: "40px", height: "40px", borderRadius: "10px", background: "rgba(255, 255, 255, 0.05)",
-                display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: "700" 
+                display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: "700"
               }}>
                 {l.fname?.[0] || "?"}
               </div>
@@ -547,14 +547,14 @@ const OverviewTab = ({ leads, isMobile }) => {
 };
 
 const StatCard = ({ label, value, icon, trend, tooltip }) => (
-  <div style={{ 
-    background: "linear-gradient(145deg, var(--bg2) 0%, #151518 100%)", 
+  <div style={{
+    background: "linear-gradient(145deg, var(--bg2) 0%, #151518 100%)",
     border: "1px solid var(--brd)", borderRadius: "24px", padding: "28px",
     display: "flex", flexDirection: "column", gap: "16px",
     position: "relative", overflow: "hidden"
   }}>
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      <div style={{ 
+      <div style={{
         width: "44px", height: "44px", borderRadius: "14px", background: "rgba(255, 255, 255, 0.05)",
         display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(255,255,255,0.05)"
       }}>{icon}</div>
@@ -574,17 +574,17 @@ const StatCard = ({ label, value, icon, trend, tooltip }) => (
 
 const PILLAR_META = {
   positioning: { label: "Positioning" },
-  website:     { label: "Website" },
-  demand:      { label: "Demand Gen" },
-  sales:       { label: "Sales" },
-  growth:      { label: "Growth" },
+  website: { label: "Website" },
+  demand: { label: "Demand Gen" },
+  sales: { label: "Sales" },
+  growth: { label: "Growth" },
 };
 
 const maturityOf = (score) => {
   if (score >= 80) return { label: "High Performing", color: "#4ADE80", bg: "rgba(74,222,128,.12)", border: "rgba(74,222,128,.25)" };
-  if (score >= 60) return { label: "Growth Ready",   color: "#E4E4E7", bg: "rgba(228,228,231,.08)", border: "rgba(228,228,231,.2)" };
-  if (score >= 40) return { label: "Developing",     color: "#FBBF24", bg: "rgba(251,191,36,.12)", border: "rgba(251,191,36,.25)" };
-  return            { label: "Early",               color: "#F87171", bg: "rgba(248,113,113,.12)", border: "rgba(248,113,113,.25)" };
+  if (score >= 60) return { label: "Growth Ready", color: "#E4E4E7", bg: "rgba(228,228,231,.08)", border: "rgba(228,228,231,.2)" };
+  if (score >= 40) return { label: "Developing", color: "#FBBF24", bg: "rgba(251,191,36,.12)", border: "rgba(251,191,36,.25)" };
+  return { label: "Early", color: "#F87171", bg: "rgba(248,113,113,.12)", border: "rgba(248,113,113,.25)" };
 };
 
 const accentOf = (score) => {
@@ -596,22 +596,22 @@ const accentOf = (score) => {
 
 const STATUS_OPTS = ["new", "contacted", "in_conversation", "won", "lost"];
 const STATUS_META = {
-  new:             { label: "New",            bg: "transparent",            color: "#E4E4E7", border: "1px solid #52525B" },
-  contacted:       { label: "Contacted",      bg: "rgba(96,165,250,.15)",   color: "#93C5FD", border: "1px solid rgba(96,165,250,.3)" },
-  in_conversation: { label: "In Conversation",bg: "rgba(251,191,36,.15)",   color: "#FBBF24", border: "1px solid rgba(251,191,36,.3)" },
-  won:             { label: "Won",            bg: "rgba(74,222,128,.15)",   color: "#4ADE80", border: "1px solid rgba(74,222,128,.3)" },
-  lost:            { label: "Lost",           bg: "rgba(248,113,113,.07)", color: "#71717A", border: "1px solid rgba(248,113,113,.25)" },
+  new: { label: "New", bg: "transparent", color: "#E4E4E7", border: "1px solid #52525B" },
+  contacted: { label: "Contacted", bg: "rgba(96,165,250,.15)", color: "#93C5FD", border: "1px solid rgba(96,165,250,.3)" },
+  in_conversation: { label: "In Conversation", bg: "rgba(251,191,36,.15)", color: "#FBBF24", border: "1px solid rgba(251,191,36,.3)" },
+  won: { label: "Won", bg: "rgba(74,222,128,.15)", color: "#4ADE80", border: "1px solid rgba(74,222,128,.3)" },
+  lost: { label: "Lost", bg: "rgba(248,113,113,.07)", color: "#71717A", border: "1px solid rgba(248,113,113,.25)" },
 };
 
 const relativeDate = (iso) => {
   const diff = Date.now() - new Date(iso).getTime();
-  const mins  = Math.floor(diff / 60000);
+  const mins = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
-  const days  = Math.floor(diff / 86400000);
-  if (mins  < 60)  return `${mins}m ago`;
-  if (hours < 24)  return `${hours}h ago`;
-  if (days  === 1) return "Yesterday";
-  if (days  < 7)   return `${days} days ago`;
+  const days = Math.floor(diff / 86400000);
+  if (mins < 60) return `${mins}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days === 1) return "Yesterday";
+  if (days < 7) return `${days} days ago`;
   return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 };
 
@@ -651,11 +651,11 @@ const ScoreRing = ({ score, size = 100 }) => {
   const dash = (score / 100) * circ;
   return (
     <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#27272A" strokeWidth="6" />
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={mt.color} strokeWidth="6"
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#27272A" strokeWidth="6" />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={mt.color} strokeWidth="6"
         strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" style={{ transition: "stroke-dasharray 0.6s ease" }} />
       <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle"
-        fill={mt.color} fontSize={size * 0.22} fontWeight="800" style={{ transform: `rotate(90deg) translate(0, -${size/2*2}px)` }}>
+        fill={mt.color} fontSize={size * 0.22} fontWeight="800" style={{ transform: `rotate(90deg) translate(0, -${size / 2 * 2}px)` }}>
       </text>
     </svg>
   );
@@ -682,7 +682,7 @@ const StatusBadgePicker = ({ status, leadId, onUpdate, onClose }) => {
   const sm = STATUS_META[status] || STATUS_META.new;
 
   useEffect(() => {
-    const handler = (e) => { 
+    const handler = (e) => {
       if (ref.current && !ref.current.contains(e.target)) {
         setOpen(false);
         if (onClose) onClose();
@@ -710,30 +710,30 @@ const StatusBadgePicker = ({ status, leadId, onUpdate, onClose }) => {
         <>
           {/* Backdrop for mobile centered menu */}
           {isMobile && (
-            <div 
-              style={{ 
-                position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", 
-                backdropFilter: "blur(4px)", zIndex: 10000 
-              }} 
+            <div
+              style={{
+                position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)",
+                backdropFilter: "blur(4px)", zIndex: 10000
+              }}
               onClick={(e) => { e.stopPropagation(); setOpen(false); if (onClose) onClose(); }}
             />
           )}
 
           <div style={{
-            position: isMobile ? "fixed" : "absolute", 
-            top: isMobile ? "50%" : "calc(100% + 6px)", 
-            left: isMobile ? "50%" : 0, 
+            position: isMobile ? "fixed" : "absolute",
+            top: isMobile ? "50%" : "calc(100% + 6px)",
+            left: isMobile ? "50%" : 0,
             transform: isMobile ? "translate(-50%, -50%)" : "none",
             zIndex: 10001,
             background: "#111113", border: "1px solid #27272A", borderRadius: "20px",
-            padding: "8px", minWidth: isMobile ? "240px" : "160px", 
+            padding: "8px", minWidth: isMobile ? "240px" : "160px",
             boxShadow: "0 20px 50px rgba(0,0,0,.8)",
             animation: isMobile ? "scaleIn 0.2s ease-out" : "fadeIn 0.15s ease-out"
           }}>
             {isMobile && (
-              <div style={{ 
-                padding: "16px 12px 8px 12px", fontSize: "11px", fontWeight: "800", 
-                color: "#52525B", textTransform: "uppercase", letterSpacing: "0.08em" 
+              <div style={{
+                padding: "16px 12px 8px 12px", fontSize: "11px", fontWeight: "800",
+                color: "#52525B", textTransform: "uppercase", letterSpacing: "0.08em"
               }}>
                 Update Status
               </div>
@@ -744,7 +744,7 @@ const StatusBadgePicker = ({ status, leadId, onUpdate, onClose }) => {
                 <button key={s} onClick={(e) => { e.stopPropagation(); onUpdate(leadId, s); setOpen(false); if (onClose) onClose(); }}
                   style={{
                     display: "block", width: "100%", textAlign: "left",
-                    padding: isMobile ? "14px 16px" : "8px 12px", borderRadius: "12px", 
+                    padding: isMobile ? "14px 16px" : "8px 12px", borderRadius: "12px",
                     fontSize: isMobile ? "14px" : "12px", fontWeight: "600",
                     background: s === status ? "rgba(255,255,255,.05)" : "transparent",
                     color: m.color, border: "none", cursor: "pointer",
@@ -839,7 +839,7 @@ const LeadDetailPanel = ({ lead, onClose, onStatusUpdate, isMobile, configSteps 
             <div style={{ fontSize: "13px", color: "#A1A1AA", marginBottom: "8px" }}>{lead.company}</div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-             <button onClick={onClose} style={{
+            <button onClick={onClose} style={{
               width: "36px", height: "36px", borderRadius: "10px", background: "rgba(255,255,255,.05)",
               border: "none", color: "#A1A1AA", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center"
             }}>
@@ -849,7 +849,7 @@ const LeadDetailPanel = ({ lead, onClose, onStatusUpdate, isMobile, configSteps 
         </div>
 
         <div style={{ padding: isMobile ? "20px" : "32px", display: "flex", flexDirection: "column", gap: "32px" }}>
-          
+
           <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginBottom: "-12px" }}>
             <StatusBadgePicker status={lead.status || "new"} leadId={lead.id} onUpdate={onStatusUpdate} />
             {lead.email && <a href={`mailto:${lead.email}`} style={{ fontSize: "12px", color: "#4ADE80", textDecoration: "none", padding: "4px 10px", background: "rgba(74,222,128,0.05)", borderRadius: "6px" }}>{lead.email}</a>}
@@ -876,12 +876,12 @@ const LeadDetailPanel = ({ lead, onClose, onStatusUpdate, isMobile, configSteps 
               </div>
               <div style={{ fontSize: "13px", color: "#A1A1AA", lineHeight: "1.5", maxWidth: "320px" }}>
                 {lead.total_score >= 80 ? "High-performing GTM engine. Focus on refinement and scale." :
-                 lead.total_score >= 60 ? "Strong foundations with clear room to optimise key pillars." :
-                 lead.total_score >= 40 ? "Structural gaps are limiting consistent pipeline generation." :
-                 "Early-stage setup. Foundational GTM work needed across most pillars."}
-                </div>
+                  lead.total_score >= 60 ? "Strong foundations with clear room to optimise key pillars." :
+                    lead.total_score >= 40 ? "Structural gaps are limiting consistent pipeline generation." :
+                      "Early-stage setup. Foundational GTM work needed across most pillars."}
               </div>
             </div>
+          </div>
 
 
           {/* S2: Pillar Breakdown */}
@@ -919,10 +919,10 @@ const LeadDetailPanel = ({ lead, onClose, onStatusUpdate, isMobile, configSteps 
                     <div style={{ fontSize: "12px", fontWeight: "700", color: "#F87171" }}>{p.label}</div>
                     <div style={{ fontSize: "11px", color: "#A1A1AA", marginTop: "2px" }}>{p.pct}% — {
                       p.id === "positioning" ? "Clarify value proposition and ICP." :
-                      p.id === "website"     ? "Audit conversion journey and CTAs." :
-                      p.id === "demand"      ? "Build repeatable demand channels." :
-                      p.id === "sales"       ? "Formalise process and CRM discipline." :
-                                              "Establish performance tracking and funnel mapping."
+                        p.id === "website" ? "Audit conversion journey and CTAs." :
+                          p.id === "demand" ? "Build repeatable demand channels." :
+                            p.id === "sales" ? "Formalise process and CRM discipline." :
+                              "Establish performance tracking and funnel mapping."
                     }</div>
                   </div>
                 ))}
@@ -932,15 +932,15 @@ const LeadDetailPanel = ({ lead, onClose, onStatusUpdate, isMobile, configSteps 
 
           {/* S1b: Booking info — Enhanced Premium UI */}
           {lead.is_booked && (
-            <div style={{ 
-              background: "linear-gradient(135deg, rgba(96,165,250,.08) 0%, rgba(96,165,250,.02) 100%)", 
+            <div style={{
+              background: "linear-gradient(135deg, rgba(96,165,250,.08) 0%, rgba(96,165,250,.02) 100%)",
               border: "1px solid rgba(96,165,250,.25)", borderRadius: "18px", padding: "24px",
               boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
               marginBottom: "32px"
             }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
                 <div style={{ display: "flex", alignItems: "flex-start", gap: "14px" }}>
-                  <div style={{ 
+                  <div style={{
                     width: "40px", height: "40px", borderRadius: "12px", background: "rgba(96,165,250,0.1)",
                     display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(96,165,250,0.2)"
                   }}>
@@ -948,11 +948,11 @@ const LeadDetailPanel = ({ lead, onClose, onStatusUpdate, isMobile, configSteps 
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: "11px", fontWeight: "800", color: "#93C5FD", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>GTM Review Requested</div>
-                    
+
                     {/* ──── Booking Contact Info ──── */}
                     {(lead.booking_info?.name || lead.booking_info?.email || lead.booking_info?.company) && (
-                      <div style={{ 
-                        background: "rgba(255,255,255,0.03)", borderRadius: "10px", padding: "12px", 
+                      <div style={{
+                        background: "rgba(255,255,255,0.03)", borderRadius: "10px", padding: "12px",
                         marginBottom: "16px", border: "1px solid rgba(255,255,255,0.05)",
                         display: "flex", flexDirection: "column", gap: "12px"
                       }}>
@@ -984,7 +984,7 @@ const LeadDetailPanel = ({ lead, onClose, onStatusUpdate, isMobile, configSteps 
                     {lead.booking_info?.message && (
                       <div style={{ marginTop: "12px" }}>
                         <div style={{ fontSize: "9px", fontWeight: "700", color: "#63636B", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "6px" }}>Anything else</div>
-                        <div style={{ 
+                        <div style={{
                           fontSize: "13px", color: "rgba(161, 161, 170, 0.8)",
                           padding: "12px", background: "rgba(255,255,255,0.03)", borderRadius: "10px",
                           fontStyle: "italic", border: "1px solid rgba(255,255,255,0.05)"
@@ -999,7 +999,7 @@ const LeadDetailPanel = ({ lead, onClose, onStatusUpdate, isMobile, configSteps 
                   onClick={async () => {
                     const next = bookingStatus === "completed" ? "pending" : "completed";
                     setBookingStatus(next);
-                    try { await updateLeadBookingStatus(lead.id, next); } catch(e) { console.error(e); }
+                    try { await updateLeadBookingStatus(lead.id, next); } catch (e) { console.error(e); }
                   }}
                   style={{
                     padding: "8px 16px", borderRadius: "10px", fontSize: "11px", fontWeight: "800", cursor: "pointer", flexShrink: 0,
@@ -1041,7 +1041,7 @@ const LeadDetailPanel = ({ lead, onClose, onStatusUpdate, isMobile, configSteps 
                             return (
                               <div key={step.k}>
                                 <div style={{ fontSize: "12px", color: "#A1A1AA", marginBottom: "4px", lineHeight: "1.4" }}
-                                  dangerouslySetInnerHTML={{ __html: (step.m || "").replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/{NAME}/g, "") }} />
+                                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize((step.m || "").replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/{NAME}/g, ""), { ALLOWED_TAGS: ["strong", "em", "br"], ALLOWED_ATTR: [] }) }} />
                                 {chosen && (
                                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                                     <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: dotColor(rawVal), flexShrink: 0 }} />
@@ -1072,14 +1072,14 @@ const LeadDetailPanel = ({ lead, onClose, onStatusUpdate, isMobile, configSteps 
             )}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
               {[
-                ["Industry",     lead.industry],
-                ["Type",         lead.business_type],
-                ["Stage",        lead.stage],
-                ["Team Size",    lead.team_size],
-                ["Revenue",      lead.revenue],
-                ["Leads/Month",  lead.lead_volume],
-                ["Timeline",     lead.timeline],
-                ["Website",      lead.website],
+                ["Industry", lead.industry],
+                ["Type", lead.business_type],
+                ["Stage", lead.stage],
+                ["Team Size", lead.team_size],
+                ["Revenue", lead.revenue],
+                ["Leads/Month", lead.lead_volume],
+                ["Timeline", lead.timeline],
+                ["Website", lead.website],
               ].filter(([, v]) => v).map(([label, val]) => (
                 <div key={label}>
                   <div style={{ fontSize: "10px", fontWeight: "700", color: "#63636B", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>{label}</div>
@@ -1124,38 +1124,38 @@ const LeadDetailPanel = ({ lead, onClose, onStatusUpdate, isMobile, configSteps 
 // ─── SUBMISSIONS TAB ───
 const SubmissionsTab = ({ leads, setLeads, onUpdate, isMobile, onOpenStatusPicker, config }) => {
   const [statusFilter, setStatusFilter] = useState("all");
-  const [scoreFilter,  setScoreFilter]  = useState("all");
-  const [dateFilter,   setDateFilter]   = useState("all");
-  const [search,       setSearch]       = useState("");
+  const [scoreFilter, setScoreFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
+  const [search, setSearch] = useState("");
   const [selectedLead, setSelectedLead] = useState(null);
-  const [toast,        setToast]        = useState(null);
-  const [currentPage,  setCurrentPage]  = useState(1);
+  const [toast, setToast] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
   // ── Stat cards ──
-  const thisWeekStart  = startOfWeek(0);
-  const lastWeekStart  = startOfWeek(-1);
-  const thisWeekCount  = leads.filter(l => new Date(l.created_at) >= thisWeekStart).length;
-  const lastWeekCount  = leads.filter(l => new Date(l.created_at) >= lastWeekStart && new Date(l.created_at) < thisWeekStart).length;
-  const weekDelta      = thisWeekCount - lastWeekCount;
-  const avgScore       = leads.length ? Math.round(leads.reduce((a, b) => a + (b.total_score || 0), 0) / leads.length) : 0;
-  const pendingCount   = leads.filter(l => (l.status || "new") === "new").length;
-  const bookedCount    = leads.filter(l => l.is_booked).length;
+  const thisWeekStart = startOfWeek(0);
+  const lastWeekStart = startOfWeek(-1);
+  const thisWeekCount = leads.filter(l => new Date(l.created_at) >= thisWeekStart).length;
+  const lastWeekCount = leads.filter(l => new Date(l.created_at) >= lastWeekStart && new Date(l.created_at) < thisWeekStart).length;
+  const weekDelta = thisWeekCount - lastWeekCount;
+  const avgScore = leads.length ? Math.round(leads.reduce((a, b) => a + (b.total_score || 0), 0) / leads.length) : 0;
+  const pendingCount = leads.filter(l => (l.status || "new") === "new").length;
+  const bookedCount = leads.filter(l => l.is_booked).length;
 
   // ── Filtered list ──
   const filtered = useMemo(() => {
     let out = [...leads];
     if (statusFilter !== "all") out = out.filter(l => (l.status || "new") === statusFilter);
-    if (scoreFilter  !== "all") {
-      const [lo, hi] = { "80-100": [80,100], "60-79": [60,79], "40-59": [40,59], "0-39": [0,39] }[scoreFilter] || [0,100];
+    if (scoreFilter !== "all") {
+      const [lo, hi] = { "80-100": [80, 100], "60-79": [60, 79], "40-59": [40, 59], "0-39": [0, 39] }[scoreFilter] || [0, 100];
       out = out.filter(l => (l.total_score || 0) >= lo && (l.total_score || 0) <= hi);
     }
     if (dateFilter !== "all") {
       const now = new Date();
-      const cutoff = dateFilter === "today"     ? new Date(now.getFullYear(), now.getMonth(), now.getDate())
-                   : dateFilter === "this_week" ? startOfWeek(0)
-                   : dateFilter === "this_month"? new Date(now.getFullYear(), now.getMonth(), 1)
-                   : null;
+      const cutoff = dateFilter === "today" ? new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        : dateFilter === "this_week" ? startOfWeek(0)
+          : dateFilter === "this_month" ? new Date(now.getFullYear(), now.getMonth(), 1)
+            : null;
       if (cutoff) out = out.filter(l => new Date(l.created_at) >= cutoff);
     }
     if (search.trim()) {
@@ -1195,7 +1195,7 @@ const SubmissionsTab = ({ leads, setLeads, onUpdate, isMobile, onOpenStatusPicke
       "Date", "First Name", "Last Name", "Email", "Company", "Website", "Phone",
       "Industry", "Business Type"
     ];
-    
+
     const rows = filtered.map(l => [
       new Date(l.created_at).toLocaleString(),
       l.fname || "",
@@ -1210,7 +1210,7 @@ const SubmissionsTab = ({ leads, setLeads, onUpdate, isMobile, onOpenStatusPicke
 
     const csv = "\uFEFF" + [headers.join(","), ...rows].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url  = URL.createObjectURL(blob);
+    const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url; a.download = `GTM_Leads_Profile_${new Date().toISOString().split("T")[0]}.csv`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
@@ -1240,11 +1240,11 @@ const SubmissionsTab = ({ leads, setLeads, onUpdate, isMobile, onOpenStatusPicke
       {/* ── Stat cards ── */}
       <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(5, 1fr)", gap: "12px" }}>
         {[
-          { label: "Total Leads",        value: leads.length },
-          { label: "This Week",          value: thisWeekCount },
-          { label: "Avg Score",          value: avgScore,      color: mt.color },
-          { label: "Booked",             value: bookedCount,   color: bookedCount > 0 ? "#4ADE80" : undefined },
-          { label: "Pending",            value: pendingCount },
+          { label: "Total Leads", value: leads.length },
+          { label: "This Week", value: thisWeekCount },
+          { label: "Avg Score", value: avgScore, color: mt.color },
+          { label: "Booked", value: bookedCount, color: bookedCount > 0 ? "#4ADE80" : undefined },
+          { label: "Pending", value: pendingCount },
         ].map(({ label, value, color }) => (
           <div key={label} style={{ background: "#111113", border: "1px solid #1F1F23", borderRadius: "16px", padding: isMobile ? "16px" : "20px" }}>
             <div style={{ fontSize: isMobile ? "20px" : "26px", fontWeight: "800", color: color || "#fff", letterSpacing: "-0.02em", lineHeight: 1 }}>{value}</div>
@@ -1257,7 +1257,7 @@ const SubmissionsTab = ({ leads, setLeads, onUpdate, isMobile, onOpenStatusPicke
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         {/* Status chips */}
         <div style={{ display: "flex", gap: "6px", overflowX: "auto", paddingBottom: "4px", scrollbarWidth: "none" }}>
-          {[["all","All"], ["new","New"], ["contacted","Cont."], ["in_conversation","Talk"], ["won","Won"]].map(([v, lbl]) => (
+          {[["all", "All"], ["new", "New"], ["contacted", "Cont."], ["in_conversation", "Talk"], ["won", "Won"]].map(([v, lbl]) => (
             <button key={v} onClick={() => setStatusFilter(v)} style={{
               padding: "6px 14px", borderRadius: "100px", fontSize: "12px", fontWeight: "600", cursor: "pointer",
               background: statusFilter === v ? "#fff" : "transparent",
@@ -1273,7 +1273,7 @@ const SubmissionsTab = ({ leads, setLeads, onUpdate, isMobile, onOpenStatusPicke
             flex: 1, padding: "8px", borderRadius: "8px", background: "#111113", border: "1px solid #27272A",
             color: "#A1A1AA", fontSize: "12px", outline: "none"
           }}>
-            {[["all","Scores"],["80-100","80–100"],["60-79","60–79"],["40-59","40–59"]].map(([v,l]) => (
+            {[["all", "Scores"], ["80-100", "80–100"], ["60-79", "60–79"], ["40-59", "40–59"]].map(([v, l]) => (
               <option key={v} value={v}>{l}</option>
             ))}
           </select>
@@ -1282,7 +1282,7 @@ const SubmissionsTab = ({ leads, setLeads, onUpdate, isMobile, onOpenStatusPicke
             flex: 1, padding: "8px", borderRadius: "8px", background: "#111113", border: "1px solid #27272A",
             color: "#A1A1AA", fontSize: "12px", outline: "none"
           }}>
-            {[["all","Time"],["today","Today"],["this_week","Week"]].map(([v,l]) => (
+            {[["all", "Time"], ["today", "Today"], ["this_week", "Week"]].map(([v, l]) => (
               <option key={v} value={v}>{l}</option>
             ))}
           </select>
@@ -1316,8 +1316,8 @@ const SubmissionsTab = ({ leads, setLeads, onUpdate, isMobile, onOpenStatusPicke
           {displayedLeads.map((lead) => {
             const mt = maturityOf(lead.total_score || 0);
             return (
-              <div 
-                key={lead.id} 
+              <div
+                key={lead.id}
                 onClick={() => setSelectedLead(lead)}
                 style={{
                   background: "#111113", border: "1px solid #1F1F23", borderRadius: "18px",
@@ -1329,9 +1329,9 @@ const SubmissionsTab = ({ leads, setLeads, onUpdate, isMobile, onOpenStatusPicke
                 onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
               >
                 {/* Visual Accent */}
-                <div style={{ 
-                  position: "absolute", left: 0, top: 0, bottom: 0, width: "4px", 
-                  background: accentOf(lead.total_score) 
+                <div style={{
+                  position: "absolute", left: 0, top: 0, bottom: 0, width: "4px",
+                  background: accentOf(lead.total_score)
                 }} />
 
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -1341,7 +1341,7 @@ const SubmissionsTab = ({ leads, setLeads, onUpdate, isMobile, onOpenStatusPicke
                         {lead.fname} {lead.lname}
                       </div>
                       {lead.is_booked && (
-                        <div style={{ 
+                        <div style={{
                           padding: "3px 8px", background: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.2)",
                           borderRadius: "6px", color: "#4ADE80", fontSize: "9px", fontWeight: "800", textTransform: "uppercase"
                         }}>
@@ -1357,9 +1357,9 @@ const SubmissionsTab = ({ leads, setLeads, onUpdate, isMobile, onOpenStatusPicke
                   </div>
                 </div>
 
-                <div style={{ 
-                  display: "flex", justifyContent: "space-between", alignItems: "center", 
-                  borderTop: "1px solid rgba(255,255,255,0.03)", paddingTop: "14px" 
+                <div style={{
+                  display: "flex", justifyContent: "space-between", alignItems: "center",
+                  borderTop: "1px solid rgba(255,255,255,0.03)", paddingTop: "14px"
                 }}>
                   <div onClick={e => { e.stopPropagation(); onOpenStatusPicker(lead); }}>
                     <LeadStatusBadge status={lead.status || "new"} />
@@ -1431,10 +1431,12 @@ const SubmissionsTab = ({ leads, setLeads, onUpdate, isMobile, onOpenStatusPicke
                     {/* Review booking */}
                     <td style={tCellStyle}>
                       {lead.is_booked ? (
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "3px 10px", borderRadius: "100px", fontSize: "10px", fontWeight: "800", textTransform: "uppercase", letterSpacing: "0.04em",
+                        <span style={{
+                          display: "inline-flex", alignItems: "center", gap: "5px", padding: "3px 10px", borderRadius: "100px", fontSize: "10px", fontWeight: "800", textTransform: "uppercase", letterSpacing: "0.04em",
                           background: lead.booking_status === "completed" ? "rgba(74,222,128,.12)" : "rgba(96,165,250,.12)",
                           color: lead.booking_status === "completed" ? "#4ADE80" : "#93C5FD",
-                          border: `1px solid ${lead.booking_status === "completed" ? "rgba(74,222,128,.25)" : "rgba(96,165,250,.25)"}` }}>
+                          border: `1px solid ${lead.booking_status === "completed" ? "rgba(74,222,128,.25)" : "rgba(96,165,250,.25)"}`
+                        }}>
                           <Calendar size={9} /> {lead.booking_status === "completed" ? "Done" : "Booked"}
                         </span>
                       ) : (
@@ -1459,20 +1461,20 @@ const SubmissionsTab = ({ leads, setLeads, onUpdate, isMobile, onOpenStatusPicke
 
       {/* ── Pagination ── */}
       {totalPages > 1 && (
-        <div style={{ 
-          display: "flex", alignItems: "center", justifyContent: "space-between", 
-          padding: "16px 20px", background: "#111113", border: "1px solid #1A1A1E", 
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "16px 20px", background: "#111113", border: "1px solid #1A1A1E",
           borderRadius: "14px", marginTop: "8px"
         }}>
           <div style={{ fontSize: "13px", color: "#63636B", fontWeight: "600" }}>
             Page <span style={{ color: "#fff" }}>{currentPage}</span> of {totalPages}
           </div>
           <div style={{ display: "flex", gap: "8px" }}>
-            <button 
+            <button
               disabled={currentPage === 1}
               onClick={() => { setCurrentPage(p => p - 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
               style={{
-                width: "40px", height: "40px", borderRadius: "10px", 
+                width: "40px", height: "40px", borderRadius: "10px",
                 background: "rgba(255,255,255,.05)", border: "1px solid #27272A",
                 color: currentPage === 1 ? "#3F3F46" : "#fff", cursor: currentPage === 1 ? "default" : "pointer",
                 display: "flex", alignItems: "center", justifyContent: "center",
@@ -1480,11 +1482,11 @@ const SubmissionsTab = ({ leads, setLeads, onUpdate, isMobile, onOpenStatusPicke
               }}>
               <ChevronLeft size={18} />
             </button>
-            <button 
+            <button
               disabled={currentPage === totalPages}
               onClick={() => { setCurrentPage(p => p + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
               style={{
-                width: "40px", height: "40px", borderRadius: "10px", 
+                width: "40px", height: "40px", borderRadius: "10px",
                 background: "rgba(255,255,255,.05)", border: "1px solid #27272A",
                 color: currentPage === totalPages ? "#3F3F46" : "#fff", cursor: currentPage === totalPages ? "default" : "pointer",
                 display: "flex", alignItems: "center", justifyContent: "center",
@@ -1558,7 +1560,7 @@ const BookingsTab = ({ submissions, onUpdate }) => {
             {bookings.map((s, i) => {
               const d = s.lead_data;
               const status = d.booking_status || 'pending';
-              
+
               return (
                 <tr key={i} style={{ borderBottom: "1px solid var(--brd)", background: status === 'completed' ? 'rgba(255,255,255,0.01)' : 'transparent' }}>
                   <td style={tCellStyle}>
@@ -1574,18 +1576,18 @@ const BookingsTab = ({ submissions, onUpdate }) => {
                   </td>
                   <td style={tCellStyle}>
                     <div style={{ display: "flex", gap: "10px" }}>
-                      <button 
+                      <button
                         onClick={() => setSelectedBooking(s)}
                         style={{ padding: "8px 16px", borderRadius: "10px", background: "rgba(255,255,255,0.05)", border: "1px solid var(--brd)", color: "#fff", fontSize: "12px", fontWeight: "700", cursor: "pointer" }}>
                         View Info
                       </button>
-                      <button 
+                      <button
                         onClick={() => toggleStatus(s.id, status)}
                         disabled={loadingId === s.id}
-                        style={{ 
-                          padding: "8px 16px", borderRadius: "10px", 
-                          background: status === 'completed' ? 'rgba(74,222,128,0.1)' : 'var(--tx)', 
-                          color: status === 'completed' ? 'var(--grn)' : 'var(--bg)', 
+                        style={{
+                          padding: "8px 16px", borderRadius: "10px",
+                          background: status === 'completed' ? 'rgba(74,222,128,0.1)' : 'var(--tx)',
+                          color: status === 'completed' ? 'var(--grn)' : 'var(--bg)',
                           fontSize: "12px", fontWeight: "800", cursor: "pointer",
                           border: status === 'completed' ? '1px solid var(--grn-br)' : 'none'
                         }}>
@@ -1617,7 +1619,7 @@ const BookingDetailModal = ({ booking, onClose }) => {
     <div style={{ position: "fixed", inset: 0, zIndex: 1100, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)" }}>
       <div style={{ background: "var(--bg2)", border: "1px solid var(--brd)", borderRadius: "32px", width: "100%", maxWidth: "540px", padding: "40px", position: "relative", animation: "slideDown 0.3s ease-out" }}>
         <button onClick={onClose} style={{ position: "absolute", top: "32px", right: "32px", background: "none", border: "none", color: "var(--td)", cursor: "pointer", fontSize: "14px", fontWeight: "700" }}>✕</button>
-        
+
         <div style={{ marginBottom: "32px" }}>
           <div style={{ display: "inline-flex", padding: "4px 12px", borderRadius: "100px", background: mt.b, color: mt.c, fontSize: "11px", fontWeight: "800", marginBottom: "12px", border: `1px solid ${mt.c}30` }}>
             {mt.l} · {booking.total_score}%
@@ -1655,7 +1657,7 @@ const BookingDetailModal = ({ booking, onClose }) => {
             </div>
           )}
         </div>
-        
+
         <button className="pbtn" onClick={onClose} style={{ marginTop: "40px" }}>Close Information</button>
       </div>
     </div>
@@ -1735,7 +1737,7 @@ const QuestionsTab = ({ config, onUpdate, isMobile }) => {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
-      <div style={{ 
+      <div style={{
         display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "center", gap: "20px",
         background: "var(--bg2)", padding: isMobile ? "20px" : "24px 32px", borderRadius: "24px", border: "1px solid var(--brd)"
       }}>
@@ -1743,10 +1745,10 @@ const QuestionsTab = ({ config, onUpdate, isMobile }) => {
           <h2 style={{ fontSize: isMobile ? "20px" : "24px", fontWeight: "800", letterSpacing: "-0.02em", marginBottom: "4px" }}>Manage Questions</h2>
           <p style={{ color: "var(--tm)", fontSize: "14px" }}>Customize your diagnostic flow.</p>
         </div>
-        <button 
-          onClick={handleSave} 
+        <button
+          onClick={handleSave}
           disabled={isSaving}
-          className="pbtn" 
+          className="pbtn"
           style={{ width: isMobile ? "100%" : "auto", padding: "12px 28px", display: "flex", gap: "10px", alignItems: "center", height: "48px" }}
         >
           {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
@@ -1756,7 +1758,7 @@ const QuestionsTab = ({ config, onUpdate, isMobile }) => {
 
       <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
         {localSteps.map((s, i) => (
-          <div key={i} style={{ 
+          <div key={i} style={{
             background: "var(--bg2)", border: "1px solid var(--brd)", borderRadius: isMobile ? "24px" : "32px", padding: isMobile ? "24px" : "40px",
             display: "flex", flexDirection: "column", gap: isMobile ? "24px" : "32px",
             transition: "all 0.3s ease",
@@ -1766,7 +1768,7 @@ const QuestionsTab = ({ config, onUpdate, isMobile }) => {
             {/* Step Header */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                <div style={{ 
+                <div style={{
                   width: "40px", height: "40px", borderRadius: "14px", background: "var(--tx)", color: "var(--bg)",
                   display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", fontWeight: "800"
                 }}>{i + 1}</div>
@@ -1779,17 +1781,17 @@ const QuestionsTab = ({ config, onUpdate, isMobile }) => {
                   </div>
                 </div>
               </div>
-              
+
               <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
                 {s.t === 'sc' && (
-                  <div style={{ 
-                    background: "var(--grn-bg)", color: "var(--grn)", padding: "6px 14px", 
-                    borderRadius: "100px", fontSize: "12px", fontWeight: "700", border: "1px solid var(--grn-br)" 
+                  <div style={{
+                    background: "var(--grn-bg)", color: "var(--grn)", padding: "6px 14px",
+                    borderRadius: "100px", fontSize: "12px", fontWeight: "700", border: "1px solid var(--grn-br)"
                   }}>
                     Interactive Scoring
                   </div>
                 )}
-                <button 
+                <button
                   onClick={() => {
                     const next = [...localSteps];
                     next.splice(i, 1);
@@ -1806,9 +1808,9 @@ const QuestionsTab = ({ config, onUpdate, isMobile }) => {
             {/* Question Text */}
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               <label style={{ fontSize: "14px", fontWeight: "700", color: "var(--tm)" }}>Question or Message Content</label>
-              <textarea 
+              <textarea
                 className="fi-input"
-                style={{ 
+                style={{
                   width: "100%", background: "rgba(0,0,0,0.2)", resize: "vertical", minHeight: "100px",
                   padding: "20px", fontSize: "15px", lineHeight: "1.6", border: "1px solid var(--brd)"
                 }}
@@ -1824,7 +1826,7 @@ const QuestionsTab = ({ config, onUpdate, isMobile }) => {
 
             {/* Options Section */}
             {s.o && (
-              <div style={{ 
+              <div style={{
                 background: "rgba(255,255,255,0.02)", borderRadius: "24px", padding: isMobile ? "20px" : "32px",
                 border: "1px solid var(--brd)", display: "flex", flexDirection: "column", gap: "24px"
               }}>
@@ -1833,10 +1835,10 @@ const QuestionsTab = ({ config, onUpdate, isMobile }) => {
                     <h4 style={{ fontSize: "16px", fontWeight: "700", color: "#fff" }}>Answer Options</h4>
                     <p style={{ color: "var(--td)", fontSize: "13px" }}>Define choices and their corresponding points.</p>
                   </div>
-                  <button 
+                  <button
                     onClick={() => addOption(i)}
                     className="pbtn"
-                    style={{ 
+                    style={{
                       width: "auto", height: "40px", fontSize: "13px", padding: "0 20px",
                       background: "rgba(255,255,255,0.05)", border: "1px solid var(--brd)", color: "#fff"
                     }}
@@ -1850,15 +1852,15 @@ const QuestionsTab = ({ config, onUpdate, isMobile }) => {
                     const isObj = typeof o !== 'string';
                     return (
                       <div key={oi} style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-                        <div style={{ 
+                        <div style={{
                           flex: 1, display: "flex", alignItems: "center", gap: "12px",
                           background: "var(--bg)", padding: "12px 16px", borderRadius: "14px",
                           border: "1px solid var(--brd)"
                         }}>
                           <span style={{ color: "var(--td)", fontSize: "12px", fontWeight: "700", minWidth: "20px" }}>{oi + 1}</span>
-                          <input 
-                            className="fi-input" 
-                            style={{ background: "transparent", border: "none", padding: 0, fontSize: "14px", width: "100%", boxShadow: "none" }} 
+                          <input
+                            className="fi-input"
+                            style={{ background: "transparent", border: "none", padding: 0, fontSize: "14px", width: "100%", boxShadow: "none" }}
                             value={isObj ? o.l : o}
                             onChange={(e) => {
                               const nextOptions = [...s.o];
@@ -1869,15 +1871,15 @@ const QuestionsTab = ({ config, onUpdate, isMobile }) => {
                           />
                         </div>
                         {isObj && (
-                          <div style={{ 
+                          <div style={{
                             width: "100px", display: "flex", alignItems: "center", gap: "8px",
                             background: "var(--bg)", padding: "12px 16px", borderRadius: "14px", border: "1px solid var(--brd)"
                           }}>
                             <span style={{ color: "var(--td)", fontSize: "10px", fontWeight: "700" }}>PTS</span>
-                            <input 
+                            <input
                               type="number"
-                              className="fi-input" 
-                              style={{ background: "transparent", border: "none", padding: 0, fontSize: "14px", width: "100%", textAlign: "center", boxShadow: "none" }} 
+                              className="fi-input"
+                              style={{ background: "transparent", border: "none", padding: 0, fontSize: "14px", width: "100%", textAlign: "center", boxShadow: "none" }}
                               value={o.v}
                               onChange={(e) => {
                                 const nextOptions = [...s.o];
@@ -1887,10 +1889,10 @@ const QuestionsTab = ({ config, onUpdate, isMobile }) => {
                             />
                           </div>
                         )}
-                        <button 
+                        <button
                           onClick={() => removeOption(i, oi)}
-                          style={{ 
-                            width: "44px", height: "44px", borderRadius: "12px", background: "rgba(239, 68, 68, 0.05)", 
+                          style={{
+                            width: "44px", height: "44px", borderRadius: "12px", background: "rgba(239, 68, 68, 0.05)",
                             border: "1px solid rgba(239, 68, 68, 0.1)", color: "#EF4444", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer"
                           }}
                         >
@@ -1905,12 +1907,12 @@ const QuestionsTab = ({ config, onUpdate, isMobile }) => {
           </div>
         ))}
 
-        <button 
+        <button
           onClick={() => {
             const next = [...localSteps, { t: "sc", p: "growth", m: "New Question", sec: "🚀 Custom", o: [{ l: "Option 1", v: 5 }, { l: "Option 2", v: 0 }] }];
             setLocalSteps(next);
           }}
-          style={{ 
+          style={{
             width: "100%", padding: "24px", borderRadius: "32px", border: "2px dashed var(--brd)",
             background: "rgba(255,255,255,0.02)", color: "var(--tm)", fontWeight: "700",
             cursor: "pointer", transition: "all 0.2s", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px"
