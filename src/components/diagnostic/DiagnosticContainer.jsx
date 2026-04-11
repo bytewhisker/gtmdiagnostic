@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import DOMPurify from "dompurify";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { supabase } from "../../lib/supabase";
 import { updateLeadBooking } from "../../lib/db";
 
@@ -72,8 +73,10 @@ export default function DiagnosticContainer({ initialP, initialSteps }) {
   const [submissionId, setSubmissionId] = useState(null);
   const [showBooking, setShowBooking] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
-  
+  const [captchaToken, setCaptchaToken] = useState(null);
+
   const containerRef = useRef(null);
+  const captchaRef = useRef(null);
 
   const P = initialP || [];
   const STEPS = initialSteps || [];
@@ -224,6 +227,13 @@ export default function DiagnosticContainer({ initialP, initialSteps }) {
     let v = true;
     let errs = {};
     const formData = {};
+
+    // Check captcha on first form
+    if (ix === 0 && !captchaToken) {
+      alert("Please complete the CAPTCHA to continue");
+      return;
+    }
+
     s.fields.forEach(f => {
       const val = document.getElementById(`f_${f.k}`)?.value.trim();
       if (f.req && !val) { v = false; errs[f.k] = "Required"; }
@@ -231,7 +241,14 @@ export default function DiagnosticContainer({ initialP, initialSteps }) {
       formData[f.k] = val;
     });
     setErrors(errs);
-    if (v) next(s.k, formData, false, true);
+    if (v) {
+      // Reset captcha after successful submission
+      if (ix === 0 && captchaRef.current) {
+        captchaRef.current.resetCaptcha();
+        setCaptchaToken(null);
+      }
+      next(s.k, formData, false, true);
+    }
   };
 
   const pillarScores = useMemo(() => calculatePillarScores(scores, P), [scores, P, STEPS]);
@@ -298,7 +315,20 @@ export default function DiagnosticContainer({ initialP, initialSteps }) {
                           </div>
                         ))}
                       </div>
-                      <button className="pbtn" type="submit" style={{ marginTop: "8px" }}>{step.btn || 'Continue →'}</button>
+
+                      {/* hCaptcha - Only on first form (contact info) */}
+                      {ix === 0 && (
+                        <div style={{ marginTop: "16px", display: "flex", justifyContent: "center" }}>
+                          <HCaptcha
+                            ref={captchaRef}
+                            sitekey="33cefe2e-3c12-482c-be54-54a87aa49fea"
+                            onVerify={(token) => setCaptchaToken(token)}
+                            theme="dark"
+                          />
+                        </div>
+                      )}
+
+                      <button className="pbtn" type="submit" style={{ marginTop: "16px" }} disabled={ix === 0 && !captchaToken}>{step.btn || 'Continue →'}</button>
                       {step.tr && <p style={{ fontSize: "11px", color: "var(--td)", textAlign: "center", marginTop: "16px", fontWeight: "500" }}>{step.tr}</p>}
                     </form>
                   )}
