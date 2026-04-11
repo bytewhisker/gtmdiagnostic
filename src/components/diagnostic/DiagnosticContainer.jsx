@@ -120,10 +120,14 @@ export default function DiagnosticContainer({ initialP, initialSteps }) {
         .single();
 
       if (error) throw error;
-      if (lead) setSubmissionId(lead.id);
+      if (lead) {
+        setSubmissionId(lead.id);
+        console.log("✅ Submission saved successfully with ID:", lead.id);
+      }
       return lead?.id;
     } catch (err) {
-      console.error("Error saving submission:", err);
+      console.error("❌ Error saving submission:", err);
+      alert(`Unable to save submission: ${err.message || err}. Please check your internet connection and try again.`);
     } finally {
       setIsSubmitting(false);
     }
@@ -383,12 +387,13 @@ export default function DiagnosticContainer({ initialP, initialSteps }) {
       try {
         if (submissionId) {
           await updateLeadBooking(submissionId, bookingData);
+          console.log("✅ Booking saved successfully");
         }
         setBookingSuccess(true);
         setTimeout(() => setShowBooking(false), 3000);
       } catch (err) {
-        console.error("Booking Error:", err);
-        alert("Something went wrong saving your booking. Please try again.");
+        console.error("❌ Booking Error:", err);
+        alert(`Unable to save booking: ${err.message || err}. Please try again.`);
       } finally {
         setIsSubmitting(false);
       }
